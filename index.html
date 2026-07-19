@@ -839,62 +839,57 @@
             let y = 52;
             const listaPersonas = Object.values(SIIP_DB.personas);
 
-            if(tipo === 'menores') {
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(13);
-                doc.text(`Calendario Inmunológico de Menores - Proyección Hitos Año ${r_anio}`, 15, 42);
+            if (tipo === 'menores') {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(13);
+        doc.text(`Calendario Inmunológico de Menores - Proyección Hitos Año ${r_anio}`, 15, 42);
+        
+        drawHeader(doc, y);
+        y += 8;
+
+        const hitosMeses = [2, 4, 6, 12, 15, 18, 24, 48];
+        const listaPersonas = Object.values(SIIP_DB.personas);
+
+        listaPersonas.forEach(p => {
+            if (!p.nacimiento) return;
+
+            let fechasHitos = {};
+            let tieneHitoEnAnio = false;
+
+            hitosMeses.forEach(meses => {
+                let fHito = addMonths(p.nacimiento, meses);
+                if (fHito.getFullYear() === r_anio) {
+                    tieneHitoEnAnio = true;
+                    fechasHitos[meses] = fHito.toLocaleDateString('es-ES');
+                } else {
+                    fechasHitos[meses] = "-";
+                }
+            });
+
+            if (tieneHitoEnAnio) {
+                if (y > 190) { // Control de salto de página
+                    doc.addPage('l');
+                    y = 20;
+                    drawHeader(doc, y);
+                    y += 10;
+                }
+
+                doc.setFont("helvetica", "normal");
+                doc.text(p.nombre.substring(0, 26), 15, y);
+                doc.text(p.cun || "Sin Reg.", 65, y);
+                doc.text(fechasHitos[2] || "-", 95, y);
+                doc.text(fechasHitos[4] || "-", 120, y);
+                doc.text(fechasHitos[6] || "-", 145, y);
+                doc.text(fechasHitos[12] || "-", 170, y);
+                doc.text(fechasHitos[15] || "-", 195, y);
+                doc.text(fechasHitos[18] || "-", 220, y);
+                doc.text(fechasHitos[24] || "-", 245, y);
+                doc.text(fechasHitos[48] || "-", 270, y);
+                y += 7;
+            }
+        });
+    } 
                 
-                doc.setFontSize(8);
-                // Encabezados de tabla estructurados
-                doc.text("Nombre del Menor", 15, y);
-                doc.text("CUN / Exp.", 65, y);
-                doc.text("Cumple 2m", 95, y);
-                doc.text("Cumple 4m", 120, y);
-                doc.text("Cumple 6m", 145, y);
-                doc.text("Cumple 1a", 170, y);
-                doc.text("Cumple 1a3m", 195, y);
-                doc.text("Cumple 1a6m", 220, y);
-                doc.text("Cumple 2a", 245, y);
-                doc.text("Cumple 4a", 270, y);
-                doc.line(15, y+2, 285, y+2);
-                y += 8;
-
-                const hitosMeses = [2, 4, 6, 12, 15, 18, 24, 48];
-
-                listaPersonas.forEach(p => {
-                    if(!p.nacimiento) return;
-                    
-                    let tieneHitoEnAnio = false;
-                    let fechasHitos = {};
-
-                    hitosMeses.forEach(meses => {
-                        let fHito = new Date(p.nacimiento);
-                        fHito.setMonth(fHito.getMonth() + meses);
-                        if(fHito.getFullYear() === r_anio) {
-                            tieneHitoEnAnio = true;
-                            fechasHitos[meses] = fHito.toLocaleDateString('es-ES');
-                        } else {
-                            fechasHitos[meses] = "-";
-                        }
-                    });
-
-                    if(tieneHitoEnAnio) {
-                        doc.setFont("helvetica", "normal");
-                        doc.text(p.nombre.substring(0, 26), 15, y);
-                        doc.text(p.cun || "Sin Reg.", 65, y);
-                        doc.text(fechasHitos[2], 95, y);
-                        doc.text(fechasHitos[4], 120, y);
-                        doc.text(fechasHitos[6], 145, y);
-                        doc.text(fechasHitos[12], 170, y);
-                        doc.text(fechasHitos[15], 195, y);
-                        doc.text(fechasHitos[18], 220, y);
-                        doc.text(fechasHitos[24], 245, y);
-                        doc.text(fechasHitos[48], 270, y);
-                        y += 7;
-                        if(y > 185) { doc.addPage('l'); y = 20; }
-                    }
-                });
-            } 
             else if(tipo === 'adultos') {
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(13);
