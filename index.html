@@ -820,26 +820,26 @@
         }
 
         // ====== CONTROL DE REPORTES PDF (jsPDF) ======
-        function generatePDFReport(tipo) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('l', 'mm', 'a4'); // Modo horizontal para tablas amplias
-            let r_anio = new Date().getFullYear();
-            
-            doc.setFillColor(30, 58, 138); 
-            doc.rect(0, 0, 297, 35, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(22);
-            doc.text("SIIP - REPORTE OFICIAL SANITARIO", 15, 18);
-            doc.setFontSize(10);
-            doc.setFont("helvetica", "normal");
-            doc.text(`Año de Gestión: ${r_anio} | Generado el: ${new Date().toLocaleDateString('es-ES')} a las ${new Date().toLocaleTimeString('es-ES')}`, 15, 28);
+function generatePDFReport(tipo) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('l', 'mm', 'a4'); // Modo horizontal para tablas amplias
+    let r_anio = new Date().getFullYear();
+    
+    doc.setFillColor(30, 58, 138); 
+    doc.rect(0, 0, 297, 35, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(22);
+    doc.text("SIIP - REPORTE OFICIAL SANITARIO", 15, 18);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Año de Gestión: ${r_anio} | Generado el: ${new Date().toLocaleDateString('es-ES')} a las ${new Date().toLocaleTimeString('es-ES')}`, 15, 28);
 
-            doc.setTextColor(51, 65, 85);
-            let y = 52;
-            const listaPersonas = Object.values(SIIP_DB.personas);
+    doc.setTextColor(51, 65, 85);
+    let y = 52;
+    const listaPersonas = Object.values(SIIP_DB.personas);
 
-            if (tipo === 'menores') {
+    if (tipo === 'menores') {
         doc.setFont("helvetica", "bold");
         doc.setFontSize(13);
         doc.text(`Calendario Inmunológico de Menores - Proyección Hitos Año ${r_anio}`, 15, 42);
@@ -848,7 +848,6 @@
         y += 8;
 
         const hitosMeses = [2, 4, 6, 12, 15, 18, 24, 48];
-        const listaPersonas = Object.values(SIIP_DB.personas);
 
         listaPersonas.forEach(p => {
             if (!p.nacimiento) return;
@@ -867,7 +866,7 @@
             });
 
             if (tieneHitoEnAnio) {
-                if (y > 190) { // Control de salto de página
+                if (y > 190) { 
                     doc.addPage('l');
                     y = 20;
                     drawHeader(doc, y);
@@ -889,213 +888,85 @@
             }
         });
     } 
-                
-            else if(tipo === 'adultos') {
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(13);
-                doc.text(`Reporte Cobertura de Vacunación: Periodo Objetivo Adultos (Cumpleaños 9 y 10 años en ${r_anio})`, 15, 42);
-                
-                doc.setFontSize(9);
-                doc.text("Nombre Completo Ciudadano", 15, y);
-                doc.text("DUI", 90, y);
-                doc.text("Hito Edad", 130, y);
-                doc.text("Fecha Exacta del Cumpleaños", 180, y);
-                doc.line(15, y+2, 250, y+2);
-                y += 8;
+    else if(tipo === 'adultos') {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(13);
+        doc.text(`Reporte Cobertura de Vacunación: Periodo Objetivo Adultos (Cumpleaños 9 y 10 años en ${r_anio})`, 15, 42);
+        
+        doc.setFontSize(9);
+        doc.text("Nombre Completo Ciudadano", 15, y);
+        doc.text("DUI", 90, y);
+        doc.text("Hito Edad", 130, y);
+        doc.text("Fecha Exacta del Cumpleaños", 180, y);
+        doc.line(15, y+2, 250, y+2);
+        y += 8;
 
-                listaPersonas.forEach(p => {
-                    if(!p.nacimiento) return;
-                    
-                    let f9 = new Date(p.nacimiento); f9.setFullYear(f9.getFullYear() + 9);
-                    let f10 = new Date(p.nacimiento); f10.setFullYear(f10.getFullYear() + 10);
-                    
-                    let cumpleHito = null;
-                    let fCumple = "";
+        listaPersonas.forEach(p => {
+            if(!p.nacimiento) return;
+            
+            let f9 = new Date(p.nacimiento); f9.setFullYear(f9.getFullYear() + 9);
+            let f10 = new Date(p.nacimiento); f10.setFullYear(f10.getFullYear() + 10);
+            
+            let cumpleHito = null;
+            let fCumple = "";
 
-                    if(f9.getFullYear() === r_anio) {
-                        cumpleHito = "9 Años";
-                        fCumple = f9.toLocaleDateString('es-ES');
-                    } else if(f10.getFullYear() === r_anio) {
-                        cumpleHito = "10 Años";
-                        fCumple = f10.toLocaleDateString('es-ES');
-                    }
-
-                    if(cumpleHito) {
-                        doc.setFont("helvetica", "normal");
-                        doc.text(p.nombre.substring(0, 45), 15, y);
-                        doc.text(p.dui || "N/A / Menor", 90, y);
-                        doc.text(cumpleHito, 130, y);
-                        doc.text(fCumple, 180, y);
-                        y += 7;
-                        if(y > 185) { doc.addPage('l'); y = 20; }
-                    }
-                });
-            } 
-            else if(tipo === 'inyeccion') {
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(13);
-                doc.text(`Proyección Anual Completa de Inyecciones Planificadas - Ciclo Continuo ${r_anio}`, 15, 42);
-                
-                doc.setFontSize(9);
-                doc.text("Nombre de la Paciente", 15, y);
-                doc.text("Tipo Método", 75, y);
-                doc.text("Última Cita", 100, y);
-                doc.text(`Calendario Completo de Inyecciones Proyectadas en el Año ${r_anio}`, 125, y);
-                doc.line(15, y+2, 285, y+2);
-                y += 8;
-
-                listaPersonas.forEach(p => {
-                    if(p.mefPlanifica === "Sí" && p.mefMetodo === "Inyección" && p.mefInyeccionFecha) {
-                        let proyeccionesAnuales = calculateFullYearInjections(p.mefInyeccionFecha, p.mefInyeccionTipo);
-                        
-                        if(proyeccionesAnuales.length > 0) {
-                            doc.setFont("helvetica", "bold");
-                            doc.text(p.nombre.substring(0, 30), 15, y);
-                            doc.setFont("helvetica", "normal");
-                            doc.text(p.mefInyeccionTipo || "Mensual", 75, y);
-                            doc.text(p.mefInyeccionFecha, 100, y);
-                            
-                            let f_str = proyeccionesAnuales.map(d => d.toLocaleDateString('es-ES')).join("  |  ");
-                            
-                            // Ajustar texto largo en jsPDF
-                            let splitFechas = doc.splitTextToSize(f_str, 155);
-                            doc.text(splitFechas, 125, y);
-                            
-                            y += (splitFechas.length * 5) + 3;
-                            if(y > 185) { doc.addPage('l'); y = 20; }
-                        }
-                    }
-                });
+            if(f9.getFullYear() === r_anio) {
+                cumpleHito = "9 Años";
+                fCumple = f9.toLocaleDateString('es-ES');
+            } else if(f10.getFullYear() === r_anio) {
+                cumpleHito = "10 Años";
+                fCumple = f10.toLocaleDateString('es-ES');
             }
 
-            doc.save(`SIIP_Reporte_${tipo}_${Date.now()}.pdf`);
-        }
-
-        // ====== REPORTE ESPECÍFICO DE PERSONA (BUSCADOR INTERACTIVO Y EXTRACTOR DE DATOS) ======
-        function generatePersonaReport() {
-            let nombreBuscado = prompt("Ingrese el nombre completo o parcial de la persona a buscar para el Reporte Técnico:");
-            if(!nombreBuscado || nombreBuscado.trim() === "") return;
-            nombreBuscado = nombreBuscado.trim().toLowerCase();
-
-            let matches = Object.values(SIIP_DB.personas).filter(p => p.nombre.toLowerCase().includes(nombreBuscado));
-
-            if(matches.length === 0) {
-                alert("No se encontró ningún ciudadano bajo ese criterio de búsqueda.");
-                return;
+            if(cumpleHito) {
+                doc.setFont("helvetica", "normal");
+                doc.text(p.nombre.substring(0, 45), 15, y);
+                doc.text(p.dui || "N/A / Menor", 90, y);
+                doc.text(cumpleHito, 130, y);
+                doc.text(fCumple, 180, y);
+                y += 7;
+                if(y > 185) { doc.addPage('l'); y = 20; }
             }
+        });
+    } 
+    else if(tipo === 'inyeccion') {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(13);
+        doc.text(`Proyección Anual Completa de Inyecciones Planificadas - Ciclo Continuo ${r_anio}`, 15, 42);
+        
+        doc.setFontSize(9);
+        doc.text("Nombre de la Paciente", 15, y);
+        doc.text("Tipo Método", 75, y);
+        doc.text("Última Cita", 100, y);
+        doc.text(`Calendario Completo de Inyecciones Proyectadas en el Año ${r_anio}`, 125, y);
+        doc.line(15, y+2, 285, y+2);
+        y += 8;
 
-            let p = matches[0];
-            if(matches.length > 1) {
-                let msgs = matches.map((m, i) => `${i+1}- ${m.nombre} (DUI: ${m.dui || 'N/A'})`).join("\n");
-                let sel = prompt(`Se encontraron múltiples coincidencias. Seleccione el número correcto:\n${msgs}`);
-                let idx = parseInt(sel) - 1;
-                if(!isNaN(idx) && idx >= 0 && idx < matches.length) {
-                    p = matches[idx];
-                } else {
-                    return;
+        listaPersonas.forEach(p => {
+            if(p.mefPlanifica === "Sí" && p.mefMetodo === "Inyección" && p.mefInyeccionFecha) {
+                let proyeccionesAnuales = calculateFullYearInjections(p.mefInyeccionFecha, p.mefInyeccionTipo);
+                
+                if(proyeccionesAnuales && proyeccionesAnuales.length > 0) {
+                    doc.setFont("helvetica", "bold");
+                    doc.text(p.nombre.substring(0, 30), 15, y);
+                    doc.setFont("helvetica", "normal");
+                    doc.text(p.mefInyeccionTipo || "Mensual", 75, y);
+                    doc.text(p.mefInyeccionFecha, 100, y);
+                    
+                    let f_str = proyeccionesAnuales.map(d => d.toLocaleDateString('es-ES')).join("  |  ");
+                    
+                    let splitFechas = doc.splitTextToSize(f_str, 155);
+                    doc.text(splitFechas, 125, y);
+                    
+                    y += (splitFechas.length * 5) + 3;
+                    if(y > 185) { doc.addPage('l'); y = 20; }
                 }
             }
+        });
+    }
 
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('p', 'mm', 'a4');
-
-            doc.setFillColor(15, 23, 42); // Encabezado Oscuro Premium
-            doc.rect(0, 0, 210, 35, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(20);
-            doc.text("FICHA TÉCNICA E HISTORIAL INDIVIDUAL", 15, 18);
-            doc.setFontSize(10);
-            doc.setFont("helvetica", "normal");
-            doc.text(`SIIP Base de Datos Oficial | Extraído el: ${new Date().toLocaleDateString('es-ES')}`, 15, 28);
-
-            doc.setTextColor(15, 23, 42);
-            let y = 50;
-
-            // Bloque 1: Datos Personales
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(12);
-            doc.text("SECCIÓN 1: DATOS PERSONALES DEL CIUDADANO", 15, y);
-            doc.line(15, y+2, 195, y+2);
-            y += 8;
-            doc.setFontSize(10);
-            doc.setFont("helvetica", "normal");
-            doc.text(`• Nombre Completo: ${p.nombre}`, 17, y); y += 6;
-            doc.text(`• CUN / Expediente Clínico: ${p.cun || "Sin Registro"}`, 17, y); y += 6;
-            doc.text(`• Documento Único de Identidad (DUI): ${p.dui || "N/A / Menor de Edad"}`, 17, y); y += 6;
-            doc.text(`• Sexo: ${p.sexo}`, 17, y); y += 6;
-            doc.text(`• Fecha de Nacimiento: ${p.nacimiento || "No Especificada"}`, 17, y); y += 6;
-            doc.text(`• Teléfono de Contacto: ${p.telefono || "No Posee"}`, 17, y); y += 6;
-            doc.text(`• Nivel Educativo Logrado: ${p.educacion || "No Registrado"} | Alfabetizado: ${p.lectura || "N/A"}`, 17, y); y += 12;
-
-            // Bloque 2: Condiciones de Vida
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(12);
-            doc.text("SECCIÓN 2: CONDICIONES SOCIOECONÓMICAS Y ESTILO DE VIDA", 15, y);
-            doc.line(15, y+2, 195, y+2);
-            y += 8;
-            doc.setFontSize(10);
-            doc.setFont("helvetica", "normal");
-            doc.text(`• Situación Laboral Activa: ${p.trabaja ? 'SÍ, Trabaja' : 'NO Trabaja'} ${p.trabajaRubro ? '(Rubro: ' + p.trabajaRubro + ')' : ''}`, 17, y); y += 6;
-            doc.text(`• Condición de Estudiante: ${p.estudia ? 'SÍ, Estudia Actualmente' : 'NO Estudia'}`, 17, y); y += 6;
-            doc.text(`• Consumo de Sustancias: Tabaco [${p.tabaco ? 'SÍ' : 'NO'}]  |  Alcohol [${p.alcohol ? 'SÍ' : 'NO'}]`, 17, y); y += 12;
-
-            // Bloque 3: Salud y Métodos
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(12);
-            doc.text("SECCIÓN 3: COMPONENTE CLÍNICO SANITARIO Y PLANIFICACIÓN", 15, y);
-            doc.line(15, y+2, 195, y+2);
-            y += 8;
-            doc.setFontSize(10);
-            doc.setFont("helvetica", "normal");
-            doc.text(`• Discapacidad Registrada: ${p.discapacidad} ${p.discapacidadDetalle ? '- Detalle: ' + p.discapacidadDetalle : ''}`, 17, y); y += 6;
-            doc.text(`• Enfermedades Crónicas: ${p.enfermedad} ${p.enfermedadDetalle ? '- Tratamiento: ' + p.enfermedadDetalle : ''}`, 17, y); y += 6;
-            doc.text(`• Planificación MEF: ${p.mefPlanifica || "No"} ${p.mefMetodo ? '| Método: ' + p.mefMetodo : ''}`, 17, y); y += 6;
-            if(p.mefMetodo === "Inyección") {
-                doc.text(`  - Tipo Inyectable: ${p.mefInyeccionTipo} | Última aplicación: ${p.mefInyeccionFecha}`, 17, y); y += 6;
-            }
-            doc.text(`• Última Citología / Tamizaje VPH: ${p.mefCitologia || "Ninguno Registrado"}`, 17, y); y += 12;
-
-            // Verificar salto de página para historiales
-            if(y > 210) { doc.addPage(); y = 20; }
-
-            // Logs Clínicos
-            doc.setFont("helvetica", "bold");
-            doc.text("HISTORIAL DE VACUNAS APLICADAS", 15, y);
-            doc.line(15, y+2, 195, y+2);
-            y += 8;
-            doc.setFontSize(9);
-            doc.setFont("helvetica", "normal");
-            if(!p.vacunas || p.vacunas.length === 0) {
-                doc.text("No se registran inmunizaciones inoculadas en el sistema para este ciudadano.", 17, y); y += 8;
-            } else {
-                p.vacunas.forEach(v => {
-                    doc.text(`-> Vacuna: ${v.nombre} | Dosis: ${v.dosis} | Fecha: ${v.fecha} | Nota: ${v.nota || 'Ninguna'}`, 17, y); y += 5;
-                    if(y > 275) { doc.addPage(); y = 20; }
-                });
-                y += 4;
-            }
-
-            if(y > 230) { doc.addPage(); y = 20; }
-
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(11);
-            doc.text("HISTORIAL CLÍNICO MÉDICO (CONSULTAS)", 15, y);
-            doc.line(15, y+2, 195, y+2);
-            y += 8;
-            doc.setFontSize(9);
-            doc.setFont("helvetica", "normal");
-            if(!p.historial_clinico || p.historial_clinico.length === 0) {
-                doc.text("No existen registros de consultas médicas o atenciones ambulatorias en la ficha.", 17, y); y += 6;
-            } else {
-                p.historial_clinico.forEach(h => {
-                    doc.text(`-> Diagnóstico: ${h.diagnostico} | Severidad: ${h.severidad} | Fecha: ${h.fecha} | Indicación: ${h.nota || 'S/N'}`, 17, y); y += 5;
-                    if(y > 275) { doc.addPage(); y = 20; }
-                });
-            }
-
-            doc.save(`Ficha_SIIP_${p.nombre.replace(/\s+/g, '_')}.pdf`);
-        }
+    doc.save(`SIIP_Reporte_${tipo}_${Date.now()}.pdf`);
+}
 
         // Carga de Datos y lógica remota
         async function cargarDatosDesdeNube() {
